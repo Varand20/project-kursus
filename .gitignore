@@ -1,0 +1,13 @@
+# Python / Backend
+/backend/venv/
+/backend/course_app.db
+__pycache__/
+*.pyc
+
+# Node.js / Frontend
+/frontend/node_modules/
+/frontend/dist/
+.env
+
+# Lain-lain
+.DS_Store
