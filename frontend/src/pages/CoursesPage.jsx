@@ -1,8 +1,5 @@
-// Ganti seluruh isi file: src/pages/CoursesPage.jsx
-// dengan kode yang sudah diperbarui di bawah ini.
-
 import { useState, useEffect } from 'react';
-import { useSearchParams } from 'react-router-dom'; // <-- Impor hook untuk membaca URL
+import { useSearchParams } from 'react-router-dom';
 import api from '../services/api';
 import { CourseCard } from '../components/CourseCard';
 import { Pagination } from '../components/Pagination';
@@ -22,52 +19,45 @@ export function CoursesPage() {
   const { searchTerm, setSearchTerm } = useSearch();
   const [searchParams, setSearchParams] = useSearchParams();
 
-  // 1. Ambil daftar kategori saat komponen dimuat
   useEffect(() => {
     api.get('/categories')
       .then(response => setCategories(response.data))
       .catch(err => console.error("Gagal memuat kategori:", err));
   }, []);
 
-  // 2. PERUBAHAN UTAMA: Cek URL untuk parameter kategori saat halaman dimuat
   useEffect(() => {
-    // Ambil nama kategori dari URL (contoh: ?category=Pemrograman)
     const categoryNameFromUrl = searchParams.get('category');
-    
-    // Jalankan hanya jika ada nama kategori di URL dan daftar kategori sudah dimuat
     if (categoryNameFromUrl && categories.length > 0) {
-      // Cari objek kategori yang namanya cocok
       const matchedCategory = categories.find(
         cat => cat.name.toLowerCase() === categoryNameFromUrl.toLowerCase()
       );
-      
       if (matchedCategory) {
-        // Jika cocok, set sebagai kategori yang dipilih
         setSelectedCategory(matchedCategory);
-        setSearchTerm(''); // Kosongkan pencarian lain
-        
-        // Hapus parameter dari URL setelah digunakan agar URL kembali bersih
+        setSearchTerm('');
         setSearchParams({}, { replace: true });
       }
     }
   }, [categories, searchParams, setSearchParams, setSearchTerm]);
 
-
-  // 3. useEffect utama untuk mengambil data kursus (tidak berubah)
+  // useEffect utama untuk mengambil data kursus
   useEffect(() => {
     const fetchCourses = async () => {
       try {
         setLoading(true);
-        const params = new URLSearchParams({ page: currentPage, limit: 12 });
+        const params = new URLSearchParams({ page: currentPage, limit: 4 });
         
-        let finalSearchTerm = searchTerm;
+        // --- LOGIKA PENGIRIMAN PARAMETER BARU ---
+        // Jika ada kategori yang dipilih, kirim ID-nya
         if (selectedCategory) {
-          finalSearchTerm = selectedCategory.name;
+          params.append('category_id', selectedCategory.id);
         }
-
-        if (finalSearchTerm) {
-          params.append('search', finalSearchTerm);
+        
+        // Jika ada kata kunci pencarian, kirim teksnya
+        // Keduanya bisa dikirim bersamaan
+        if (searchTerm) {
+          params.append('search', searchTerm);
         }
+        // -----------------------------------------
 
         const response = await api.get(`/courses?${params.toString()}`);
         setCourses(response.data.results);
@@ -82,12 +72,11 @@ export function CoursesPage() {
   }, [currentPage, searchTerm, selectedCategory]);
 
   const handleCategoryClick = (category) => {
-    setSearchTerm('');
+    // setSearchTerm(''); // Kita tidak perlu mengosongkan search term lagi
     setSelectedCategory(category);
     setCurrentPage(1);
   };
   
-  // JSX return tetap sama persis seperti kode Anda
   return (
     <div className="container mx-auto p-4 sm:p-8">
       <h1 className="text-4xl font-bold mb-8 text-center">Jelajahi Kursus Kami</h1>
@@ -99,6 +88,7 @@ export function CoursesPage() {
         ))}
       </div>
 
+      {/* Tampilan kursus dan paginasi (tidak ada perubahan di sini) */}
       {loading ? (
         <div className="text-center"><span className="loading loading-lg loading-spinner"></span></div>
       ) : error ? (
@@ -113,7 +103,7 @@ export function CoursesPage() {
           </div>
         </>
       ) : (
-        <p className="text-center">Tidak ada kursus yang cocok dengan pencarian Anda.</p>
+        <p className="text-center">Tidak ada kursus yang cocok dengan kriteria Anda.</p>
       )}
     </div>
   );

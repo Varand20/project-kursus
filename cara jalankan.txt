@@ -1,0 +1,13 @@
+jalankan di dua terminal berbeda
+
+di folder backend
+venv\Scripts\activate
+uvicorn app.main:app --reload 
+
+di folder frontend
+npm run dev (jalankan di folder frontend)
+
+
+
+
+

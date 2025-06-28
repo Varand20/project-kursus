@@ -1,7 +1,7 @@
 # Lokasi: app/routers/courses.py
 
 from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File, Form
-from sqlalchemy import or_
+from sqlalchemy import or_, and_
 from sqlalchemy.orm import Session, joinedload
 from typing import List, Optional
 from app import schemas, models, oauth2
@@ -19,46 +19,40 @@ router = APIRouter(
 # === ENDPOINT PUBLIK ===
 
 # 1. Melihat semua kursus
-@router.get("/", response_model=schemas.PaginatedCourseDisplay) # <-- Gunakan skema baru
+@router.get("/", response_model=schemas.PaginatedCourseDisplay)
 def get_all_courses(
     db: Session = Depends(get_db),
+    # Tambahkan parameter baru: category_id
+    category_id: Optional[int] = None,
     search: Optional[str] = None,
-    # Tambahkan parameter page dan limit dengan nilai default
     page: int = 1,
-    limit: int = 10 # Default menampilkan 10 item per halaman
+    limit: int = 4
 ):
-    # Query dasar yang sudah ada
     query = db.query(models.Course).options(
         joinedload(models.Course.owner), 
         joinedload(models.Course.category),
         joinedload(models.Course.enrollments)
     )
 
-    # Logika filter pencarian yang sudah ada
+    # --- LOGIKA FILTER BARU ---
+    
+    # 1. Filter berdasarkan kategori jika ID-nya diberikan
+    if category_id:
+        query = query.filter(models.Course.category_id == category_id)
+
+    # 2. Filter berdasarkan kata kunci pencarian jika ada
+    #    Pencarian ini sekarang hanya berlaku pada judul kursus
     if search:
         search_term = f"%{search}%"
-        query = query.join(models.Category).filter(
-            or_(
-                models.Course.title.ilike(search_term), 
-                models.Category.name.ilike(search_term)
-            )
-        )
+        query = query.filter(models.Course.title.ilike(search_term))
+    
+    # ---------------------------
 
-    # --- LOGIKA PAGINASI BARU ---
-
-    # 1. Hitung total item SEBELUM menerapkan limit dan offset
     total_items = query.count()
-
-    # 2. Hitung offset (berapa data yang harus dilewati)
     offset = (page - 1) * limit
-
-    # 3. Terapkan limit dan offset pada query
-    courses = query.limit(limit).offset(offset).all()
-
-    # 4. Hitung total halaman
+    courses = query.order_by(models.Course.id.desc()).limit(limit).offset(offset).all()
     total_pages = math.ceil(total_items / limit)
 
-    # 5. Kembalikan data dalam format skema PaginatedCourseDisplay
     return {
         "total_items": total_items,
         "total_pages": total_pages,

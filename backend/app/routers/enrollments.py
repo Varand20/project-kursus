@@ -59,3 +59,27 @@ def get_my_enrolled_courses(
     ).filter(models.Enrollment.user_id == current_user.id).all()
 
     return enrollments
+    
+@router.delete("/enrollments/{course_id}", status_code=status.HTTP_204_NO_CONTENT)
+def unenroll_from_course(
+    course_id: int,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(oauth2.get_current_user)
+):
+    # Cari entri pendaftaran yang akan dihapus
+    enrollment_to_delete = db.query(models.Enrollment).filter(
+        models.Enrollment.course_id == course_id,
+        models.Enrollment.user_id == current_user.id
+    ).first()
+    
+    # Jika tidak ditemukan (pengguna memang tidak terdaftar), kembalikan error
+    if not enrollment_to_delete:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, 
+                            detail="Enrollment not found.")
+    
+    # Gunakan db.delete() untuk memicu logika SQLAlchemy
+    db.delete(enrollment_to_delete)
+    db.commit()
+    
+    # Tidak perlu mengembalikan body untuk DELETE yang sukses
+    return
