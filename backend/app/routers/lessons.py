@@ -25,12 +25,12 @@ def create_lesson_for_course(
     if course.instruktur_id != current_user.id:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized to add lesson to this course.")
         
-    # --- LOGIKA BARU: Membuat Ruang untuk Pelajaran Baru ---
+    
     # Ambil semua pelajaran yang urutannya lebih besar atau sama dengan urutan baru
     lessons_to_shift = db.query(models.Lesson).filter(
         models.Lesson.course_id == course_id,
         models.Lesson.order >= request.order
-    ).order_by(models.Lesson.order.desc()).all() # Urutkan dari yang terbesar agar tidak ada konflik
+    ).order_by(models.Lesson.order.desc()).all() # Urutkan dari yang terbesar 
 
     # Geser semua pelajaran tersebut satu langkah ke belakang (tambah 1)
     for lesson in lessons_to_shift:
@@ -93,13 +93,13 @@ def partial_update_lesson(
 
     update_data = request.model_dump(exclude_unset=True)
 
-    # --- LOGIKA BARU: Jika nomor urut diubah ---
+    #Jika nomor urut diubah
     if 'order' in update_data and update_data['order'] != lesson.order:
         old_order = lesson.order
         new_order = update_data['order']
         course_id = lesson.course_id
         
-        if new_order < old_order: # Bergerak ke atas (misal dari 5 ke 2)
+        if new_order < old_order: # Bergerak ke atas 
             # Geser ke bawah pelajaran di antara posisi baru dan lama
             db.query(models.Lesson).filter(
                 models.Lesson.course_id == course_id,
@@ -107,7 +107,7 @@ def partial_update_lesson(
                 models.Lesson.order < old_order
             ).update({"order": models.Lesson.order + 1})
         else: # Bergerak ke bawah (misal dari 2 ke 5)
-            # Geser ke atas pelajaran di antara posisi lama dan baru
+            
             db.query(models.Lesson).filter(
                 models.Lesson.course_id == course_id,
                 models.Lesson.order > old_order,
@@ -138,7 +138,7 @@ def delete_lesson(
     order_to_remove = lesson.order
     course_id_to_update = lesson.course_id
 
-    # --- PERBAIKAN UTAMA DI SINI ---
+    
     db.delete(lesson)
     # -------------------------------
     

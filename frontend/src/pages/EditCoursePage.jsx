@@ -10,7 +10,6 @@ export function EditCoursePage() {
   const [error, setError] = useState(null);
   const navigate = useNavigate();
 
-  // Ambil data kursus yang ada untuk diisi ke form
   useEffect(() => {
     api.get(`/courses/${courseId}`)
       .then(response => {
@@ -28,7 +27,6 @@ export function EditCoursePage() {
     setIsLoading(true);
     setError(null);
     try {
-      // Panggil endpoint PATCH yang menerima multipart/form-data
       await api.patch(`/courses/${courseId}`, formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
@@ -41,19 +39,36 @@ export function EditCoursePage() {
       setIsLoading(false);
     }
   };
-  
-  if (!initialData) return <div className="text-center p-10"><span className="loading loading-lg loading-spinner"></span></div>;
+
+  if (!initialData) {
+    return (
+      <div className="flex justify-center items-center min-h-screen bg-gradient-to-br from-indigo-900 via-slate-800 to-gray-900">
+        <span className="loading loading-lg loading-spinner text-white"></span>
+      </div>
+    );
+  }
 
   return (
-    <div className="container mx-auto p-8 max-w-2xl">
-      <h1 className="text-4xl font-bold mb-8">Edit Kursus</h1>
-      {error && <div className="alert alert-error mb-4">{error}</div>}
-      <CourseForm
-        onSubmit={handleUpdateCourse}
-        initialData={initialData}
-        isEditing={true}
-        isLoading={isLoading}
-      />
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-900 via-slate-800 to-gray-900 px-4">
+      <div className="w-full max-w-2xl p-8 rounded-2xl shadow-xl bg-white/10 backdrop-blur-lg border border-white/20 text-white animate-fade-in">
+        <h1 className="text-3xl font-bold mb-3 text-center">Edit Kursus</h1>
+        <p className="text-sm text-center mb-6 text-slate-300">
+          Perbarui informasi kursus kamu dengan mudah di bawah ini.
+        </p>
+
+        {error && (
+          <div className="bg-red-500/90 text-white text-sm p-3 rounded text-center whitespace-pre-line mb-4">
+            {error}
+          </div>
+        )}
+
+        <CourseForm
+          onSubmit={handleUpdateCourse}
+          initialData={initialData}
+          isEditing={true}
+          isLoading={isLoading}
+        />
+      </div>
     </div>
   );
 }

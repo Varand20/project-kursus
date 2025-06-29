@@ -1,4 +1,3 @@
-# Lokasi: app/routers/favorites.py
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session, joinedload
@@ -6,10 +5,9 @@ from typing import List
 from app import models, oauth2, schemas
 from app.database import get_db
 
-# Kita akan gunakan dua prefix berbeda dalam satu file untuk kerapian
-# Satu untuk aksi (POST/DELETE), satu untuk melihat daftar (GET)
+
 router = APIRouter(
-    tags=["Favorites"] # Kita kelompokkan dalam satu tag
+    tags=["Favorites"] 
 )
 
 # === ENDPOINT UNTUK AKSI FAVORIT ===
@@ -69,11 +67,6 @@ def get_my_favorite_courses(
     db: Session = Depends(get_db),
     current_user: models.User = Depends(oauth2.get_current_user)
 ):
-    # Query ini sedikit lebih kompleks:
-    # 1. Ambil data dari tabel Course
-    # 2. Lakukan JOIN ke tabel Favorite
-    # 3. Filter berdasarkan user_id yang sedang login
-    # 4. Lakukan joinedload untuk mengambil data owner dan category
     favorite_courses = db.query(models.Course).join(models.Favorite).filter(
         models.Favorite.user_id == current_user.id
     ).options(

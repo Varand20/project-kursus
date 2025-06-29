@@ -25,12 +25,10 @@ def populate_categories():
 
 app = FastAPI()
 
-# --- TAMBAHKAN BLOK KODE INI ---
-# Ini memberitahu backend untuk mengizinkan permintaan dari alamat React Anda.
+
 origins = [
     "http://localhost:3000", # Alamat default Create React App
     "http://localhost:5173", # Alamat default Vite
-    # Anda bisa menambahkan alamat lain di sini nanti
 ]
 
 app.add_middleware(

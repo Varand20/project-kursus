@@ -24,17 +24,11 @@ export function InstructorDashboardPage() {
     }
   };
 
-  // --- FUNGSI BARU UNTUK MENGHAPUS KURSUS ---
   const handleDeleteCourse = async (courseId) => {
-    // Tampilkan jendela konfirmasi
     if (window.confirm('Apakah Anda yakin ingin menghapus kursus ini secara permanen? Semua pelajaran di dalamnya juga akan terhapus.')) {
       try {
-        // Panggil endpoint DELETE di backend
         await api.delete(`/courses/${courseId}`);
-        
-        // Jika berhasil, perbarui tampilan dengan menghapus kursus dari state
         setMyCourses(prevCourses => prevCourses.filter(course => course.id !== courseId));
-        
         alert('Kursus berhasil dihapus.');
       } catch (err) {
         alert('Gagal menghapus kursus. Coba lagi nanti.');
@@ -43,57 +37,56 @@ export function InstructorDashboardPage() {
     }
   };
 
-  if (loading) return <div className="text-center p-10"><span className="loading loading-lg loading-spinner"></span></div>;
-  if (error) return <div className="text-center p-10 text-error">{error}</div>;
+  if (loading) return <div className="text-center p-10 text-white"><span className="loading loading-lg loading-spinner"></span></div>;
+  if (error) return <div className="text-center p-10 text-red-300">{error}</div>;
 
   return (
-    <div className="container mx-auto p-8">
-      <div className="flex justify-between items-center mb-8">
-        <h1 className="text-4xl font-bold">Dasbor Instruktur</h1>
-        <Link to="/instructor/courses/create" className="btn btn-primary">
-          + Buat Kursus Baru
-        </Link>
-      </div>
+    <div className="min-h-screen bg-gradient-to-br from-indigo-900 via-slate-800 to-gray-900 text-white px-4 py-10">
+      <div className="max-w-5xl mx-auto backdrop-blur-md bg-white/10 border border-white/20 p-8 rounded-2xl shadow-xl">
+        <div className="flex justify-between items-center mb-8">
+          <h1 className="text-4xl font-bold">Dasbor Instruktur</h1>
+          <Link to="/instructor/courses/create" className="btn btn-primary">
+            + Buat Kursus Baru
+          </Link>
+        </div>
 
-      <div className="overflow-x-auto bg-base-100 rounded-lg shadow">
-        <table className="table w-full">
-          <thead>
-            <tr>
-              <th>Judul Kursus</th>
-              <th>Kategori</th>
-              <th>Pendaftar</th>
-              <th>Aksi</th>
-            </tr>
-          </thead>
-          <tbody>
-            {myCourses.map(course => (
-              <tr key={course.id} className="hover">
-                <td>
-                  <div className="font-bold">{course.title}</div>
-                </td>
-                <td>{course.category.name}</td>
-                <td>{course.enrollment_count}</td>
-                <td className="flex gap-2">
-                  <Link to={`/instructor/courses/${course.id}/manage`} className="btn btn-ghost btn-xs">
-                    Kelola
-                  </Link>
-                  {/* --- TOMBOL HAPUS BARU --- */}
-                  <button 
-                    onClick={() => handleDeleteCourse(course.id)} 
-                    className="btn btn-error btn-xs text-white"
-                  >
-                    Hapus
-                  </button>
-                </td>
-              </tr>
-            ))}
-             {myCourses.length === 0 && (
+        <div className="overflow-x-auto rounded-lg">
+          <table className="table w-full text-white">
+            <thead>
               <tr>
-                <td colSpan="4" className="text-center p-4">Anda belum membuat kursus apapun.</td>
+                <th>Judul Kursus</th>
+                <th>Kategori</th>
+                <th>Pendaftar</th>
+                <th>Aksi</th>
               </tr>
-            )}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {myCourses.map(course => (
+                <tr key={course.id} className="hover:bg-white/5">
+                  <td><div className="font-bold">{course.title}</div></td>
+                  <td>{course.category.name}</td>
+                  <td>{course.enrollment_count}</td>
+                  <td className="flex gap-2">
+                    <Link to={`/instructor/courses/${course.id}/manage`} className="btn btn-ghost btn-xs">
+                      Kelola
+                    </Link>
+                    <button 
+                      onClick={() => handleDeleteCourse(course.id)} 
+                      className="btn btn-error btn-xs text-white"
+                    >
+                      Hapus
+                    </button>
+                  </td>
+                </tr>
+              ))}
+              {myCourses.length === 0 && (
+                <tr>
+                  <td colSpan="4" className="text-center p-4">Anda belum membuat kursus apapun.</td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   );

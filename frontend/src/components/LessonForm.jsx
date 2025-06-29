@@ -86,13 +86,13 @@ export function LessonForm({ onSubmit, initialData = {}, onCancel, isLoading = f
 
       <div className="form-control">
         <label className="label">
-          <span className="label-text">Konten Teks</span>
+          <span className="label-text">Konten Teks (Opsional)</span>
         </label>
         <textarea 
           name="content" 
           value={formData.content} 
           onChange={handleChange} 
-          placeholder="Tulis konten pelajaran di sini..." 
+          placeholder="Tulis konten pelajaran di sini (mendukung markdown)" 
           className="textarea textarea-bordered h-40 w-full resize-y"
         ></textarea>
       </div>

@@ -1,18 +1,15 @@
 import enum
 from sqlalchemy import Column, Integer, String, TIMESTAMP, text, Enum
-from .database import Base # Impor Base dari file database.py
-from sqlalchemy.orm import relationship # <-- Tambahkan import relationship
-from sqlalchemy import ForeignKey # <-- Tambahkan import ForeignKey
+from .database import Base 
+from sqlalchemy.orm import relationship 
+from sqlalchemy import ForeignKey 
 
-# Definisikan pilihan peran dalam sebuah Enum
-# Mewarisi dari str agar bisa diperlakukan seperti string jika diperlukan
+
 class UserRole(str, enum.Enum):
     instruktur = "instruktur"
     siswa = "siswa"
 
-# Definisikan tabel 'users' sebagai sebuah kelas Python model
 class User(Base):
-    # Nama tabel di dalam database
     __tablename__ = "users"
 
     # Definisikan kolom-kolomnya
@@ -24,12 +21,11 @@ class User(Base):
     role = Column(Enum(UserRole), nullable=False, server_default=UserRole.siswa.value)
     created_at = Column(TIMESTAMP(timezone=True), nullable=False, server_default=text('CURRENT_TIMESTAMP'))
     updated_at = Column(TIMESTAMP(timezone=True), nullable=False, server_default=text('CURRENT_TIMESTAMP'), onupdate=text('CURRENT_TIMESTAMP'))
-    # Mendefinisikan hubungan: Satu User (Mentor) bisa punya banyak Course
+    # Mendefinisikan hubungan
     courses = relationship("Course", back_populates="owner")
     enrollments = relationship("Enrollment", back_populates="user")
     favorites = relationship("Favorite", back_populates="user")
 
-# Nanti Anda akan menambahkan kelas lain seperti Course, Lesson, dll di file ini.
 
 class Category(Base):
     __tablename__ = "categories"
@@ -51,7 +47,6 @@ class Course(Base):
     category_id = Column(Integer, ForeignKey("categories.id"))
 
     # --- Relationships ---
-    # Mendefinisikan hubungan ke tabel-tabel lain
     
     # Hubungan ke User (pemilik/instruktur)
     owner = relationship("User", back_populates="courses")
@@ -111,7 +106,6 @@ class Enrollment(Base):
     user = relationship("User", back_populates="enrollments")
     course = relationship("Course", back_populates="enrollments")
 
-# --- KELAS BARU UNTUK FAVORITE ---
 class Favorite(Base):
     __tablename__ = "favorites"
     id = Column(Integer, primary_key=True, index=True)

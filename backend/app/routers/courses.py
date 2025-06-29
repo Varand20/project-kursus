@@ -1,5 +1,3 @@
-# Lokasi: app/routers/courses.py
-
 from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File, Form
 from sqlalchemy import or_, and_
 from sqlalchemy.orm import Session, joinedload
@@ -22,7 +20,6 @@ router = APIRouter(
 @router.get("/", response_model=schemas.PaginatedCourseDisplay)
 def get_all_courses(
     db: Session = Depends(get_db),
-    # Tambahkan parameter baru: category_id
     category_id: Optional[int] = None,
     search: Optional[str] = None,
     page: int = 1,
@@ -34,14 +31,11 @@ def get_all_courses(
         joinedload(models.Course.enrollments)
     )
 
-    # --- LOGIKA FILTER BARU ---
-    
     # 1. Filter berdasarkan kategori jika ID-nya diberikan
     if category_id:
         query = query.filter(models.Course.category_id == category_id)
 
     # 2. Filter berdasarkan kata kunci pencarian jika ada
-    #    Pencarian ini sekarang hanya berlaku pada judul kursus
     if search:
         search_term = f"%{search}%"
         query = query.filter(models.Course.title.ilike(search_term))
@@ -74,8 +68,6 @@ def get_featured_courses(db: Session = Depends(get_db)):
     ).all()
     
     # 2. Urutkan daftar kursus di dalam Python menggunakan 'sorted()'
-    #    'key=lambda c: c.enrollment_count' memberitahu Python untuk mengurutkan berdasarkan properti enrollment_count
-    #    'reverse=True' untuk mengurutkan dari yang terbesar ke terkecil.
     sorted_courses = sorted(all_courses, key=lambda c: c.enrollment_count, reverse=True)
     
     # 3. Ambil 4 kursus pertama dari daftar yang sudah terurut
@@ -122,13 +114,10 @@ def get_course_by_id(id: int, db: Session = Depends(get_db)):
 # 3. Membuat kursus baru
 @router.post("/", status_code=status.HTTP_201_CREATED, response_model=schemas.CourseDisplay)
 async def create_course_with_upload(
-    # Data teks sekarang diterima sebagai Form, bukan JSON
     title: str = Form(...),
     description: Optional[str] = Form(None),
     category_id: int = Form(...),
-    # Data file diterima sebagai File
     file: Optional[UploadFile] = File(None),
-    # Dependencies tetap sama
     db: Session = Depends(get_db),
     current_user: models.User = Depends(oauth2.get_current_user)
 ):
@@ -152,12 +141,12 @@ async def create_course_with_upload(
         
         thumbnail_url = f"http://localhost:8000/{file_path}"
 
-    # 4. Buat objek kursus baru dengan data teks dan URL gambar
+    # 4. Buat objek kursus baru 
     new_course = models.Course(
         title=title,
         description=description,
         category_id=category_id,
-        thumbnail_url=thumbnail_url, # Masukkan URL yang sudah dibuat
+        thumbnail_url=thumbnail_url, 
         instruktur_id=current_user.id
     )
 
@@ -176,11 +165,9 @@ async def partial_update_course(
     id: int,
     db: Session = Depends(get_db),
     current_user: models.User = Depends(oauth2.get_current_user),
-    # Definisikan semua field sebagai Form opsional
     title: Optional[str] = Form(None),
     description: Optional[str] = Form(None),
     category_id: Optional[int] = Form(None),
-    # File juga bersifat opsional
     file: Optional[UploadFile] = File(None)
 ):
     course_query = db.query(models.Course).filter(models.Course.id == id)
@@ -195,8 +182,7 @@ async def partial_update_course(
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,
                             detail="Not authorized to perform requested action.")
 
-    # --- LOGIKA UPDATE BARU ---
-
+    
     # 1. Buat dictionary untuk menampung data teks yang akan diupdate
     update_data = {}
     if title is not None:
@@ -212,7 +198,6 @@ async def partial_update_course(
 
     # 2. Cek apakah ada file gambar baru yang diunggah
     if file:
-        # Hapus gambar lama jika ada untuk menghemat ruang (opsional tapi bagus)
         if course.thumbnail_url:
             # Dapatkan path file lama dari URL
             old_file_path = course.thumbnail_url.replace("http://localhost:8000/", "")
@@ -229,10 +214,10 @@ async def partial_update_course(
         course.thumbnail_url = thumbnail_url
         db.add(course)
 
-    # 3. Lakukan commit ke database
+   
     db.commit()
 
-    # Ambil data terbaru yang lengkap dengan relasinya untuk dikembalikan
+    # Ambil data terbaru yang lengkap 
     updated_course = db.query(models.Course).options(
         joinedload(models.Course.owner),
         joinedload(models.Course.category),
@@ -258,9 +243,6 @@ def delete_course(
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,
                             detail="Not authorized to perform requested action.")
 
-    # --- PERBAIKAN UTAMA DI SINI ---
-    # Hapus objeknya melalui sesi, bukan melalui query.
-    # Ini akan memicu aturan cascade.
     db.delete(course)
     # -------------------------------
     

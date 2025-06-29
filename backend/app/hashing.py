@@ -1,6 +1,6 @@
 from passlib.context import CryptContext
 
-# Buat konteks untuk hashing, beri tahu algoritma defaultnya adalah bcrypt
+# Buat konteks untuk hashing
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 # Fungsi untuk mengenkripsi password

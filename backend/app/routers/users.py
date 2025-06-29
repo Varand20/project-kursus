@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
-from app import schemas, models, hashing # Impor semua yang kita butuhkan
+from app import schemas, models, hashing 
 from app.database import get_db
 from app import oauth2
 from app import jwt
@@ -30,7 +30,7 @@ def register_user(request: schemas.UserCreate, db: Session = Depends(get_db)):
 
     new_user = models.User(
         name=request.name,
-        username=request.username, # <-- TAMBAHKAN INI
+        username=request.username, 
         email=request.email,
         hashed_password=hashed_pwd
     )
@@ -42,9 +42,6 @@ def register_user(request: schemas.UserCreate, db: Session = Depends(get_db)):
 
 @router.get("/me", response_model=schemas.UserDisplay)
 def get_user_details(current_user: models.User = Depends(oauth2.get_current_user)):
-    # Karena ada `Depends(oauth2.get_current_user)`, FastAPI akan menjalankan
-    # fungsi "satpam" itu dulu. Jika token tidak valid, fungsi ini tidak akan pernah dijalankan.
-    # Jika token valid, data user akan dimasukkan ke variabel `current_user`.
     return current_user
 
 @router.post("/become-instructor", status_code=status.HTTP_200_OK)
@@ -64,12 +61,9 @@ def become_instructor(
     db.commit()
     db.refresh(user)
 
-    # --- BAGIAN BARU YANG DITAMBAHKAN ---
-    # Setelah peran diubah, buat token baru dengan informasi yang sudah ter-update
     data = {"sub": user.email, "role": user.role.value}
     new_access_token = jwt.create_access_token(data=data)
 
-    # Kembalikan token baru tersebut
     return {
         "message": "Congratulations! You are now an instructor.",
         "access_token": new_access_token,
@@ -84,7 +78,7 @@ def update_user_details(
 ):
     user_to_update = current_user
 
-    # Ambil data yang dikirim oleh pengguna (hanya yang diisi)
+    
     update_data = request.model_dump(exclude_unset=True)
 
     # --- PENGECEKAN KEAMANAN SEBELUM UPDATE ---
@@ -124,7 +118,6 @@ def change_password(
     user = current_user
 
     # 1. Verifikasi password saat ini
-    #    Bandingkan password yang dikirim di form dengan yang ada di database.
     if not hashing.verify_password(request.current_password, user.hashed_password):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
                             detail="Incorrect current password.")

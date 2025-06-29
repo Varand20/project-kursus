@@ -1,9 +1,7 @@
-# Lokasi: app/jwt.py (Versi menggunakan PyJWT)
-
-import jwt # Impor library jwt yang baru
+import jwt 
 from datetime import datetime, timedelta, timezone
 
-# --- KONFIGURASI PENTING ---
+
 SECRET_KEY = "a_very_secret_key_that_is_long_and_random"
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
@@ -23,8 +21,6 @@ def create_access_token(data: dict):
 # --- FUNGSI UNTUK VERIFIKASI TOKEN ---
 def verify_token(token: str, credentials_exception):
     try:
-        # Decode token menggunakan PyJWT
-        # PyJWT bisa melempar banyak jenis error, menangkap PyJWTError adalah cara umumnya
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
 
         email: str = payload.get("sub")

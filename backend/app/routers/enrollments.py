@@ -1,4 +1,3 @@
-# Lokasi: app/routers/enrollments.py
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session, joinedload
@@ -6,7 +5,7 @@ from typing import List
 from app import models, oauth2, schemas
 from app.database import get_db
 
-# Ubah setup router agar lebih fleksibel tanpa prefix
+
 router = APIRouter(
     tags=["Enrollments"]
 )
@@ -40,7 +39,7 @@ def enroll_in_course(
     return {"message": "Successfully enrolled in the course."}
 
 
-# --- ENDPOINT BARU UNTUK MELIHAT KURSUS YANG DIIKUTI ---
+# --- ENDPOINT  UNTUK MELIHAT KURSUS YANG DIIKUTI ---
 @router.get("/my-enrollments", response_model=List[schemas.EnrolledCourseDisplay])
 def get_my_enrolled_courses(
     db: Session = Depends(get_db),
@@ -48,8 +47,6 @@ def get_my_enrolled_courses(
 ):
     # Query ke tabel enrollments, filter berdasarkan user yang login
     enrollments = db.query(models.Enrollment).options(
-        # Lakukan chained joinedload untuk mengambil data course,
-        # DAN juga data owner & category dari course tersebut.
         joinedload(models.Enrollment.course)
             .joinedload(models.Course.owner),
         joinedload(models.Enrollment.course)
@@ -81,5 +78,5 @@ def unenroll_from_course(
     db.delete(enrollment_to_delete)
     db.commit()
     
-    # Tidak perlu mengembalikan body untuk DELETE yang sukses
+    
     return
